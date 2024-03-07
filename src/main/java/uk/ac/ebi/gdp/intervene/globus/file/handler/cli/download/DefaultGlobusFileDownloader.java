@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2023 EMBL - European Bioinformatics Institute
+ * Copyright 2024 EMBL - European Bioinformatics Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  */
 package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.retry.support.RetryTemplate;
@@ -36,57 +35,66 @@ import java.nio.file.Path;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 
+import static org.apache.commons.io.IOUtils.copy;
 import static uk.ac.ebi.gdp.file.handler.core.utils.Checksum.getMD5MessageDigest;
+import static uk.ac.ebi.gdp.file.handler.core.utils.Checksum.normalize;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ApplicationStatus.APPLICATION_FAILED;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ApplicationStatus.SUCCESS;
 
-public class GlobusFileDownloader implements IGlobusFileDownloader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GlobusFileDownloader.class);
+public class DefaultGlobusFileDownloader implements IGlobusFileDownloader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGlobusFileDownloader.class);
     private final WebClient webClient;
     private final RetryTemplate retryTemplate;
     private final int pipeSize;
+    protected final int bufferSize;
 
-    public GlobusFileDownloader(final WebClient webClient,
-                                final RetryTemplate retryTemplate,
-                                final int pipeSize) {
+    public DefaultGlobusFileDownloader(final WebClient webClient,
+                                       final RetryTemplate retryTemplate,
+                                       final int pipeSize,
+                                       final int bufferSize) {
         this.webClient = webClient;
         this.retryTemplate = retryTemplate;
         this.pipeSize = pipeSize;
+        this.bufferSize = bufferSize;
     }
 
     @Override
-    public ApplicationStatus downloadFile(final Path fileDownloadSourcePath,
-                                          final Path fileDownloadDestinationPath,
+    public ApplicationStatus downloadFile(final Path downloadFileSourcePath,
+                                          final Path downloadFileDestinationPath,
                                           final long fileSize,
                                           final ProgressListener progressListener) {
-        final Path fileToBeDownloadedName = fileDownloadSourcePath.getFileName();
-        final File destinationFile = fileDownloadDestinationPath.resolve(fileToBeDownloadedName).toFile();
+        final Path fileToBeDownloadedName = downloadFileSourcePath.getFileName();
+        final Path destinationFilePath = downloadFileDestinationPath.resolve(fileToBeDownloadedName);
         try {
-            LOGGER.info("File download process started for {}", fileDownloadSourcePath);
-            doDownloadFile(fileDownloadSourcePath, destinationFile, fileSize, progressListener);
-            LOGGER.info("File download process completed for {}", fileDownloadSourcePath);
+            LOGGER.info("File download process started for {}", downloadFileSourcePath);
+            doDownloadFile(downloadFileSourcePath, destinationFilePath, fileSize, progressListener);
+            LOGGER.info("File download process completed for {}", downloadFileSourcePath);
         } catch (IOException e) {
             LOGGER.error("Error while downloading file %s".formatted(fileToBeDownloadedName), e);
-            return ApplicationStatus.APPLICATION_FAILED;
+            return APPLICATION_FAILED;
         }
-        return ApplicationStatus.SUCCESS;
+        return SUCCESS;
     }
 
-    private void doDownloadFile(final Path fileDownloadSourcePath,
-                                final File destinationFile,
-                                final long fileSize,
-                                final ProgressListener progressListener) throws IOException {
+    protected void doDownloadFile(final Path downloadFileSourcePath,
+                                  final Path destinationFilePath,
+                                  final long fileSize,
+                                  final ProgressListener progressListener) throws IOException {
         final MessageDigest messageDigest = getMD5MessageDigest();
-        try (final OutputStream os = new DigestOutputStream(
+        final File destinationFile = destinationFilePath.toFile();
+        try (final OutputStream digestOutputStream = new DigestOutputStream(
                 new ProgressListenerOutputStream(
                         new FileOutputStream(destinationFile), progressListener),
                 messageDigest);
-             final InputStream in = doGetDownloadInputStream(fileDownloadSourcePath, fileSize)) {
-            IOUtils.copyLarge(in, os);
+             final InputStream globusDownloadInputStream = getDownloadInputStream(downloadFileSourcePath, fileSize)) {
+            copy(globusDownloadInputStream, digestOutputStream, bufferSize);
         }
-        //final String downloadedFileMD5 = normalize(messageDigest);//TODO use md5 to validate file
-        LOGGER.info("File {} has been successfully downloaded at {}", fileDownloadSourcePath.getFileName(), destinationFile.getAbsolutePath());
+        final String downloadedFileMD5 = normalize(messageDigest);
+        LOGGER.info("File {} has been successfully downloaded at {}, MD5: {}",
+                downloadFileSourcePath.getFileName(), destinationFile.getAbsolutePath(), downloadedFileMD5);
     }
 
-    private InputStream doGetDownloadInputStream(final Path downloadLocation,
+    protected InputStream getDownloadInputStream(final Path downloadLocation,
                                                  final long fileSize) throws IOException {
         return new RetryInputStream(
                 webClient,

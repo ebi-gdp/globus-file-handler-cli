@@ -23,44 +23,65 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_SHORT;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_FILE_SIZE;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.CRYPT4GH_OPTION;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.CRYPT4GH_PRIVATE_KEY_PATH_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT;
 
 public class CLIParameters {
-    private final Path fileDownloadLocationSource;
-    private final Path fileDownloadLocationDestination;
-    private final long fileSize;
+    private final String fileDownloadSourceLocation;
+    private final String fileDownloadDestinationLocation;
+    private final Long fileSize;
+    private final Boolean isCrypt4ghEnabled;
+    private final String crypt4ghPrivateKeyPath;
 
     public CLIParameters(final OptionSet optionSet) throws IOException {
-        this.fileDownloadLocationSource = extractFileDownloadPathSource(optionSet);
-        this.fileDownloadLocationDestination = extractFileDownloadPathDestination(optionSet);
-        this.fileSize = (long) optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_FILE_SIZE);
+        this.fileDownloadSourceLocation = extractFileDownloadPathSource(optionSet);
+        this.fileDownloadDestinationLocation = extractFileDownloadPathDestination(optionSet);
+        this.fileSize = Long.valueOf(optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG).toString());
+        this.isCrypt4ghEnabled = optionSet.has(CRYPT4GH_OPTION);
+        this.crypt4ghPrivateKeyPath = extractCrypt4ghPrivateKeyPath(optionSet);
     }
 
-    private Path extractFileDownloadPathSource(final OptionSet optionSet) {
-        return Path.of((optionSet.hasArgument(GLOBUS_FILE_DOWNLOAD_SOURCE_SHORT) ? optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_SOURCE_SHORT) : optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_SOURCE_LONG)).toString());
+    private String extractFileDownloadPathSource(final OptionSet optionSet) {
+        return (optionSet.hasArgument(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT) ?
+                optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT) : optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG)).toString();
     }
 
-    private Path extractFileDownloadPathDestination(final OptionSet optionSet) throws IOException {
-        return validateFileDownloadDestinationPath(Path.of((optionSet.hasArgument(GLOBUS_FILE_DOWNLOAD_DESTINATION_SHORT) ? optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_DESTINATION_SHORT) : optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_DESTINATION_LONG)).toString()));
+    private String extractFileDownloadPathDestination(final OptionSet optionSet) throws IOException {
+        return validateFileDownloadDestinationPath(Path.of((
+                optionSet.hasArgument(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT) ?
+                        optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT) : optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG)).toString()));
     }
 
-    public Path getFileDownloadLocationSource() {
-        return fileDownloadLocationSource;
+    private String extractCrypt4ghPrivateKeyPath(final OptionSet optionSet) {
+        return optionSet.hasArgument(CRYPT4GH_PRIVATE_KEY_PATH_LONG) ? optionSet.valueOf(CRYPT4GH_PRIVATE_KEY_PATH_LONG).toString() : null;
     }
 
-    public Path getFileDownloadLocationDestination() {
-        return fileDownloadLocationDestination;
+    public String getFileDownloadSourceLocation() {
+        return fileDownloadSourceLocation;
     }
 
-    public long getFileSize() {
+    public String getFileDownloadDestinationLocation() {
+        return fileDownloadDestinationLocation;
+    }
+
+    public Long getFileSize() {
         return fileSize;
     }
 
-    private Path validateFileDownloadDestinationPath(final Path fileDownloadLocationDestinationPath) throws IOException {
+    public Boolean isCrypt4ghEnabled() {
+        return isCrypt4ghEnabled;
+    }
+
+    public String getCrypt4ghPrivateKeyPath() {
+        return crypt4ghPrivateKeyPath;
+    }
+
+    private String validateFileDownloadDestinationPath(final Path fileDownloadLocationDestinationPath) throws IOException {
         final File fileDownloadLocationDestination = fileDownloadLocationDestinationPath
                 .normalize()
                 .toAbsolutePath()
@@ -68,6 +89,6 @@ public class CLIParameters {
         if (!fileDownloadLocationDestination.exists() && !fileDownloadLocationDestination.mkdirs()) {
             throw new IOException("Output directory path doesn't exists/ Unable to create destination directory.");
         }
-        return fileDownloadLocationDestinationPath;
+        return fileDownloadLocationDestinationPath.toString();
     }
 }
