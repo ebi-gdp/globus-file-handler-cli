@@ -19,31 +19,52 @@ package uk.ac.ebi.gdp.intervene.globus.file.handler.cli;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.PropertySource;
 import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParameters;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIPropertySource;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static java.lang.System.exit;
+import static java.util.Arrays.asList;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ApplicationStatus.INPUT_PROCESSING_ERROR;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.parse;
 
 @SpringBootApplication
 public class GlobusFileHandlerApplication {
     public static void main(final String... args) throws IOException {
-        final Optional<CLIParameters> cliParameters = CLIParser.parse(args);
+        final Optional<CLIParameters> cliParameters = parse(args);
 
         if (cliParameters.isPresent()) {
+            final PropertySource<CLIParameters> propertySource = new CLIPropertySource("cliPropertySource", cliParameters.get());
             new SpringApplicationBuilder(GlobusFileHandlerApplication.class)
-                    .initializers((applicationContext) ->
-                            applicationContext
-                                    .getBeanFactory()
-                                    .registerSingleton(
-                                            "cliParameters",
-                                            cliParameters.get()))
+                    .initializers((applicationContext) -> {
+                        applicationContext
+                                .getEnvironment()
+                                .getPropertySources()
+                                .addLast(propertySource);
+                        setActiveProfile(cliParameters.get(), applicationContext.getEnvironment());
+                    })
                     .run(args);
         } else {
             exit(INPUT_PROCESSING_ERROR.getValue());
+        }
+    }
+
+    private static void setActiveProfile(final CLIParameters parameters,
+                                         final ConfigurableEnvironment configurableEnvironment) {
+        if (parameters.isCrypt4ghEnabled()) {
+            final String[] activeProfilesArray = configurableEnvironment.getActiveProfiles();
+            final List<String> activeProfilesList = new ArrayList<>(activeProfilesArray.length);
+            activeProfilesList.addAll(asList(activeProfilesArray));
+            activeProfilesList.add(CRYPT4GH);
+            configurableEnvironment
+                    .setActiveProfiles(activeProfilesList.toArray(String[]::new));
         }
     }
 }

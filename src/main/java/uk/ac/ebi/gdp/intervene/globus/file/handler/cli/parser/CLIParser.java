@@ -34,29 +34,39 @@ import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.Applicati
 
 public class CLIParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(CLIParser.class);
-    public static final String GLOBUS_FILE_DOWNLOAD_SOURCE_SHORT = "s";
-    public static final String GLOBUS_FILE_DOWNLOAD_SOURCE_LONG = "globus_file_download_source_path";
-    public static final String GLOBUS_FILE_DOWNLOAD_DESTINATION_SHORT = "d";
-    public static final String GLOBUS_FILE_DOWNLOAD_DESTINATION_LONG = "globus_file_download_destination_path";
-    public static final String GLOBUS_FILE_DOWNLOAD_FILE_SIZE = "file_size";
+    public static final String GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT = "s";
+    public static final String GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG = "globus_file_download_source_path";
+    public static final String GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT = "d";
+    public static final String GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG = "globus_file_download_destination_path";
+    public static final String GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT = "l";
+    public static final String GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG = "file_size";
+    public static final String CRYPT4GH_OPTION = "crypt4gh";
+    public static final String CRYPT4GH_PRIVATE_KEY_PATH_SHORT = "sk";
+    public static final String CRYPT4GH_PRIVATE_KEY_PATH_LONG = "private_key";
     public static final String OPTIONS_HELP = "h";
     private static final OptionParser optionParser = buildParser();
 
     private static OptionParser buildParser() {
         final OptionParser parser = new OptionParser();
-        parser.accepts(OPTIONS_HELP, "Use this option to display help.");
-        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_SOURCE_SHORT, GLOBUS_FILE_DOWNLOAD_SOURCE_LONG), "Globus file download path/uri (source). Required unless option help -h is provided!")
+        parser.accepts(OPTIONS_HELP, "Use this option to display help");
+        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT, GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG), "Globus file download path/uri (source)")
                 .requiredUnless(OPTIONS_HELP)
                 .withRequiredArg()
                 .ofType(String.class);
-        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_DESTINATION_SHORT, GLOBUS_FILE_DOWNLOAD_DESTINATION_LONG), "Globus file download path (destination). Required unless option help -h is provided!")
+        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT, GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG), "Globus file download path (destination)")
                 .requiredUnless(OPTIONS_HELP)
                 .withRequiredArg()
                 .ofType(String.class);
-        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_FILE_SIZE), "File size. Required unless option help -h is provided!")
+        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT, GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG), "File size")
                 .requiredUnless(OPTIONS_HELP)
                 .withRequiredArg()
                 .ofType(Long.class);
+        parser.accepts(CRYPT4GH_OPTION, "Crypt4gh decryption! Use this option to decrypt file encrypted by Crypt4gh")
+                .availableUnless(OPTIONS_HELP);
+        parser.acceptsAll(List.of(CRYPT4GH_PRIVATE_KEY_PATH_SHORT, CRYPT4GH_PRIVATE_KEY_PATH_LONG), "Crypt4gh private key path")
+                .requiredIf(CRYPT4GH_OPTION)
+                .withRequiredArg()
+                .ofType(String.class);
         parser.allowsUnrecognizedOptions();
         return parser;
     }

@@ -17,37 +17,52 @@
  */
 package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import uk.ac.ebi.gdp.file.handler.core.properties.WebClientProperties;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.GlobusFileDownloader;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.DefaultGlobusFileDownloader;
 import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.IGlobusFileDownloader;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParameters;
 import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.runner.GlobusFileHandlerCommandLineRunner;
+
+import java.nio.file.Path;
+
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT;
 
 @Configuration
 public class GlobusFileHandlerCliConfig {
 
+    @Profile("!" + CRYPT4GH)
     @Bean
-    public IGlobusFileDownloader globusFileDownloader(final WebClient webClient,
-                                                      final RetryTemplate retryTemplate,
-                                                      final WebClientProperties webClientProperties) {
-        return new GlobusFileDownloader(
+    public IGlobusFileDownloader defaultGlobusFileDownloader(final WebClient webClient,
+                                                             final RetryTemplate retryTemplate,
+                                                             final WebClientProperties webClientProperties,
+                                                             @Value("${data.copy.buffer-size:8192}") final int bufferSize) {
+        return new DefaultGlobusFileDownloader(
                 webClient,
                 retryTemplate,
-                webClientProperties.getPipeSize());
+                webClientProperties.getPipeSize(),
+                bufferSize);
     }
 
     @Bean
-    public GlobusFileHandlerCommandLineRunner globusFileHandlerCommandLineRunner(final ApplicationContext applicationContext,
-                                                                                 final IGlobusFileDownloader globusFileDownloader,
-                                                                                 final CLIParameters cliParameters) {
+    public GlobusFileHandlerCommandLineRunner globusFileHandlerCLRunner(final ApplicationContext applicationContext,
+                                                                        final IGlobusFileDownloader globusFileDownloader,
+                                                                        @Value("${" + GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT + "}") final Path fileDownloadSourcePath,
+                                                                        @Value("${" + GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT + "}") final Path fileDownloadDestinationPath,
+                                                                        @Value("${" + GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT + "}") final long fileSize) {
         return new GlobusFileHandlerCommandLineRunner(
                 applicationContext,
                 globusFileDownloader,
-                cliParameters);
+                fileDownloadSourcePath,
+                fileDownloadDestinationPath,
+                fileSize);
     }
 }

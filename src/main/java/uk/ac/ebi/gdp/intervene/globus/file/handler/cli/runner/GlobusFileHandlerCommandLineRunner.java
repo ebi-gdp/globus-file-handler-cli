@@ -24,8 +24,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.IGlobusFileDownloader;
 import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.listener.BytesTransferredListener;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParameters;
 
+import java.nio.file.Path;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static java.lang.System.exit;
@@ -33,25 +33,31 @@ import static java.lang.System.exit;
 public class GlobusFileHandlerCommandLineRunner implements ApplicationRunner {
     private final ApplicationContext applicationContext;
     private final IGlobusFileDownloader globusFileDownloader;
-    private final CLIParameters cliParameters;
+    private final Path fileDownloadSourcePath;
+    private final Path fileDownloadDestinationPath;
+    private final long fileSize;
 
     public GlobusFileHandlerCommandLineRunner(final ApplicationContext applicationContext,
                                               final IGlobusFileDownloader globusFileDownloader,
-                                              final CLIParameters cliParameters) {
+                                              final Path fileDownloadSourcePath,
+                                              final Path fileDownloadDestinationPath,
+                                              final long fileSize) {
         this.applicationContext = applicationContext;
         this.globusFileDownloader = globusFileDownloader;
-        this.cliParameters = cliParameters;
+        this.fileDownloadSourcePath = fileDownloadSourcePath;
+        this.fileDownloadDestinationPath = fileDownloadDestinationPath;
+        this.fileSize = fileSize;
     }
 
     @Override
     public void run(ApplicationArguments args) {
         terminateApplication(() -> globusFileDownloader
                 .downloadFile(
-                        cliParameters.getFileDownloadLocationSource(),
-                        cliParameters.getFileDownloadLocationDestination(),
-                        cliParameters.getFileSize(),
+                        fileDownloadSourcePath,
+                        fileDownloadDestinationPath,
+                        fileSize,
                         new BytesTransferredListener(
-                                cliParameters.getFileDownloadLocationSource().getFileName().toString(),
+                                fileDownloadSourcePath.getFileName().toString(),
                                 new ScheduledThreadPoolExecutor(1)))
                 .getValue());
     }
