@@ -23,13 +23,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import static java.net.URI.create;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.CRYPT4GH_OPTION;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.CRYPT4GH_PRIVATE_KEY_PATH_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_DESTINATION_PATH_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_FILE_SIZE_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_SOURCE_PATH_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT;
 
 public class CLIParameters {
     private final String fileDownloadSourceLocation;
@@ -41,20 +42,20 @@ public class CLIParameters {
     public CLIParameters(final OptionSet optionSet) throws IOException {
         this.fileDownloadSourceLocation = extractFileDownloadPathSource(optionSet);
         this.fileDownloadDestinationLocation = extractFileDownloadPathDestination(optionSet);
-        this.fileSize = Long.valueOf(optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG).toString());
+        this.fileSize = Long.valueOf(optionSet.valueOf(GLOBUS_FILE_TRANSFER_FILE_SIZE_LONG).toString());
         this.isCrypt4ghEnabled = optionSet.has(CRYPT4GH_OPTION);
         this.crypt4ghPrivateKeyPath = extractCrypt4ghPrivateKeyPath(optionSet);
     }
 
     private String extractFileDownloadPathSource(final OptionSet optionSet) {
-        return (optionSet.hasArgument(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT) ?
-                optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT) : optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG)).toString();
+        return (optionSet.hasArgument(GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT) ?
+                optionSet.valueOf(GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT) : optionSet.valueOf(GLOBUS_FILE_TRANSFER_SOURCE_PATH_LONG)).toString();
     }
 
     private String extractFileDownloadPathDestination(final OptionSet optionSet) throws IOException {
-        return validateFileDownloadDestinationPath(Path.of((
-                optionSet.hasArgument(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT) ?
-                        optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT) : optionSet.valueOf(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG)).toString()));
+        return validateFileDownloadDestinationPath((
+                optionSet.hasArgument(GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT) ?
+                        optionSet.valueOf(GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT) : optionSet.valueOf(GLOBUS_FILE_TRANSFER_DESTINATION_PATH_LONG)).toString());
     }
 
     private String extractCrypt4ghPrivateKeyPath(final OptionSet optionSet) {
@@ -81,14 +82,15 @@ public class CLIParameters {
         return crypt4ghPrivateKeyPath;
     }
 
-    private String validateFileDownloadDestinationPath(final Path fileDownloadLocationDestinationPath) throws IOException {
-        final File fileDownloadLocationDestination = fileDownloadLocationDestinationPath
+    private String validateFileDownloadDestinationPath(final String fileDownloadDestination) throws IOException {
+        final File fileDownloadDestinationFile = Path.of(create(fileDownloadDestination).getPath())
                 .normalize()
+                .getParent()
                 .toAbsolutePath()
                 .toFile();
-        if (!fileDownloadLocationDestination.exists() && !fileDownloadLocationDestination.mkdirs()) {
+        if (!fileDownloadDestinationFile.exists() && !fileDownloadDestinationFile.mkdirs()) {
             throw new IOException("Output directory path doesn't exists/ Unable to create destination directory.");
         }
-        return fileDownloadLocationDestinationPath.toString();
+        return fileDownloadDestination;
     }
 }

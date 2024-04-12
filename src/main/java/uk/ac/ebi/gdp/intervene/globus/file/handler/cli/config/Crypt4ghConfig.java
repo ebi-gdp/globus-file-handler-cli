@@ -24,9 +24,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import uk.ac.ebi.gdp.file.handler.core.properties.WebClientProperties;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.Crypt4gh;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.Crypt4ghGlobusFileDownloader;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.IGlobusFileDownloader;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer.Crypt4gh;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer.GlobusCrypt4ghLocalFileTransfer;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer.IGlobusFileTransfer;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -39,13 +39,13 @@ import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.C
 public class Crypt4ghConfig {
 
     @Bean
-    public IGlobusFileDownloader crypt4ghGlobusFileDownloader(final WebClient webClient,
-                                                              final RetryTemplate retryTemplate,
-                                                              final WebClientProperties webClientProperties,
-                                                              final Crypt4gh crypt4gh,
-                                                              @Value("#{'${crypt4gh.shell-path}'.split(' ')}") final List<String> shellInterpreterCmds,
-                                                              @Value("${data.copy.buffer-size:8192}") final int bufferSize) {
-        return new Crypt4ghGlobusFileDownloader(
+    public IGlobusFileTransfer crypt4ghGlobusFileTransfer(final WebClient webClient,
+                                                          final RetryTemplate retryTemplate,
+                                                          final WebClientProperties webClientProperties,
+                                                          final Crypt4gh crypt4gh,
+                                                          @Value("#{'${crypt4gh.shell-path}'.split(' ')}") final List<String> shellInterpreterCmds,
+                                                          @Value("${data.copy.buffer-size:8192}") final int bufferSize) {
+        return new GlobusCrypt4ghLocalFileTransfer(
                 webClient,
                 retryTemplate,
                 webClientProperties.getPipeSize(),

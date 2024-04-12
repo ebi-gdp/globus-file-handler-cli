@@ -15,7 +15,7 @@
  * limitations under the License.
  *
  */
-package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download;
+package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,39 +24,38 @@ import org.springframework.web.reactive.function.client.WebClient;
 import uk.ac.ebi.gdp.file.handler.core.listener.ProgressListener;
 import uk.ac.ebi.gdp.file.handler.core.stream.ProgressListenerOutputStream;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Path;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.io.IOUtils.copy;
 
-public class Crypt4ghGlobusFileDownloader extends DefaultGlobusFileDownloader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Crypt4ghGlobusFileDownloader.class);
+public class GlobusCrypt4ghLocalFileTransfer extends DefaultGlobusFileTransfer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobusCrypt4ghLocalFileTransfer.class);
     private final Crypt4gh crypt4gh;
     private final List<String> shellInterpreterCmd;
 
-    public Crypt4ghGlobusFileDownloader(final WebClient webClient,
-                                        final RetryTemplate retryTemplate,
-                                        final int pipeSize,
-                                        final Crypt4gh crypt4gh,
-                                        final List<String> shellInterpreterCmd,
-                                        final int bufferSize) {
+    public GlobusCrypt4ghLocalFileTransfer(final WebClient webClient,
+                                           final RetryTemplate retryTemplate,
+                                           final int pipeSize,
+                                           final Crypt4gh crypt4gh,
+                                           final List<String> shellInterpreterCmd,
+                                           final int bufferSize) {
         super(webClient, retryTemplate, pipeSize, bufferSize);
         this.crypt4gh = crypt4gh;
         this.shellInterpreterCmd = shellInterpreterCmd;
     }
 
     @Override
-    public void doDownloadFile(final Path downloadFileSourcePath,
-                               final Path destinationFilePath,
+    public void doDownloadFile(final URI downloadFileSource,
+                               final URI destinationFile,
                                final long fileSize,
-                               final ProgressListener progressListener) throws IOException {
+                               final ProgressListener progressListener) throws Exception {
         LOGGER.info("Establishing connection for Globus InputStream");
-        try (final InputStream globusDownloadInputStream = getDownloadInputStream(downloadFileSourcePath, fileSize)) {
-            final ProcessBuilder processBuilder = processBuilder(crypt4gh.crypt4ghDecryptBashCmd(destinationFilePath));
+        try (final InputStream globusDownloadInputStream = getGlobusDownloadInputStream(downloadFileSource, fileSize)) {
+            final ProcessBuilder processBuilder = processBuilder(crypt4gh.crypt4ghDecryptBashCmd(destinationFile));
 
             LOGGER.info("Bash process is about to start");
             final Process process = processBuilder.start();
@@ -73,13 +72,10 @@ public class Crypt4ghGlobusFileDownloader extends DefaultGlobusFileDownloader {
 
             if (exitCode == 0) {
                 LOGGER.info("File {} has been successfully downloaded at {}",
-                        downloadFileSourcePath.getFileName(), destinationFilePath.toAbsolutePath());
+                        downloadFileSource.getPath(), destinationFile.getPath());
             } else {
                 LOGGER.error("Process finished with exit-code: {}", exitCode);
             }
-        } catch (InterruptedException ie) {
-            LOGGER.error(ie.getMessage(), ie);
-            throw new RuntimeException("Process interrupted", ie);
         }
     }
 
