@@ -1,11 +1,9 @@
+# This workflow builds a multi-architecture docker image and pushes it to the github container registry
 name: Docker build and push
 
 on:
   release:
-    types: [created]
-  workflow_dispatch:
-  push:
-    branches: [actions]
+    types: [published]
 
 jobs:
   build:
@@ -49,12 +47,12 @@ jobs:
       with:
         push: true
         platforms: "linux/amd64,linux/arm64"
-        tags: ghcr.io/ebi-gdp/globus-file-handler-cli:1.0.0
+        tags: ghcr.io/ebi-gdp/globus-file-handler-cli::${{ github.event.release.tag_name }}
         secret-files: |
           "MAVEN_SETTINGS=/home/runner/.m2/settings.xml"
         file: "docker/crypt4gh/Dockerfile"
         build-args: |
-            VERSION=1.0.0
+            VERSION=${{ github.event.release.tag_name }}
 
     
     
