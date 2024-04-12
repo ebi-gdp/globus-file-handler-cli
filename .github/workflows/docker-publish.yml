@@ -47,7 +47,7 @@ jobs:
       with:
         push: true
         platforms: "linux/amd64,linux/arm64"
-        tags: ghcr.io/ebi-gdp/globus-file-handler-cli::${{ github.event.release.tag_name }}
+        tags: ghcr.io/ebi-gdp/globus-file-handler-cli:${{ github.event.release.tag_name }}
         secret-files: |
           "MAVEN_SETTINGS=/home/runner/.m2/settings.xml"
         file: "docker/crypt4gh/Dockerfile"
