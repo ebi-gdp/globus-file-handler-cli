@@ -15,16 +15,16 @@
  * limitations under the License.
  *
  */
-package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download;
+package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer;
 
 import uk.ac.ebi.gdp.file.handler.core.listener.ProgressListener;
 import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ApplicationStatus;
 
-import java.nio.file.Path;
+import java.net.URI;
 
-public interface IGlobusFileDownloader {
-    ApplicationStatus downloadFile(Path fileDownloadSourcePath,
-                                   Path fileDownloadDestinationPath,
+public interface IGlobusFileTransfer {
+    ApplicationStatus downloadFile(URI fileDownloadSource,
+                                   URI fileDownloadDestination,
                                    long fileSize,
                                    ProgressListener progressListener);
 }

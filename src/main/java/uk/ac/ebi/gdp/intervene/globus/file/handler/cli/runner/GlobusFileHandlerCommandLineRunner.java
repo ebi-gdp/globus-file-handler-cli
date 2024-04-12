@@ -22,30 +22,30 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
-import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download.IGlobusFileDownloader;
 import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.listener.BytesTransferredListener;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer.IGlobusFileTransfer;
 
-import java.nio.file.Path;
+import java.net.URI;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static java.lang.System.exit;
 
 public class GlobusFileHandlerCommandLineRunner implements ApplicationRunner {
     private final ApplicationContext applicationContext;
-    private final IGlobusFileDownloader globusFileDownloader;
-    private final Path fileDownloadSourcePath;
-    private final Path fileDownloadDestinationPath;
+    private final IGlobusFileTransfer globusFileDownloader;
+    private final URI fileDownloadSource;
+    private final URI fileDownloadDestination;
     private final long fileSize;
 
     public GlobusFileHandlerCommandLineRunner(final ApplicationContext applicationContext,
-                                              final IGlobusFileDownloader globusFileDownloader,
-                                              final Path fileDownloadSourcePath,
-                                              final Path fileDownloadDestinationPath,
+                                              final IGlobusFileTransfer globusFileDownloader,
+                                              final URI fileDownloadSource,
+                                              final URI fileDownloadDestination,
                                               final long fileSize) {
         this.applicationContext = applicationContext;
         this.globusFileDownloader = globusFileDownloader;
-        this.fileDownloadSourcePath = fileDownloadSourcePath;
-        this.fileDownloadDestinationPath = fileDownloadDestinationPath;
+        this.fileDownloadSource = fileDownloadSource;
+        this.fileDownloadDestination = fileDownloadDestination;
         this.fileSize = fileSize;
     }
 
@@ -53,11 +53,11 @@ public class GlobusFileHandlerCommandLineRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         terminateApplication(() -> globusFileDownloader
                 .downloadFile(
-                        fileDownloadSourcePath,
-                        fileDownloadDestinationPath,
+                        fileDownloadSource,
+                        fileDownloadDestination,
                         fileSize,
                         new BytesTransferredListener(
-                                fileDownloadSourcePath.getFileName().toString(),
+                                fileDownloadSource.getPath(),
                                 new ScheduledThreadPoolExecutor(1)))
                 .getValue());
     }

@@ -15,10 +15,9 @@
  * limitations under the License.
  *
  */
-package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.download;
+package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer;
 
-import org.apache.commons.io.FilenameUtils;
-
+import java.net.URI;
 import java.nio.file.Path;
 
 import static java.lang.String.join;
@@ -26,10 +25,9 @@ import static java.lang.String.join;
 public record Crypt4gh(
         Path crypt4ghBinAbsolutePath,
         Path privateKeyAbsolutePath) {
-    public String crypt4ghDecryptBashCmd(final Path decryptedFileDownloadPath) {
-        final String crypt4ghFileDownloadedPath = FilenameUtils.removeExtension(decryptedFileDownloadPath.toString());
+    public String crypt4ghDecryptBashCmd(final URI decryptedDownloadFile) {
         return join(" ",
                 crypt4ghBinAbsolutePath.toString(), "decrypt",
-                "--sk", privateKeyAbsolutePath.toString(), ">", crypt4ghFileDownloadedPath);
+                "--sk", privateKeyAbsolutePath.toString(), ">", decryptedDownloadFile.getPath());
     }
 }

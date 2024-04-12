@@ -34,12 +34,12 @@ import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.Applicati
 
 public class CLIParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(CLIParser.class);
-    public static final String GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT = "s";
-    public static final String GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG = "globus_file_download_source_path";
-    public static final String GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT = "d";
-    public static final String GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG = "globus_file_download_destination_path";
-    public static final String GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT = "l";
-    public static final String GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG = "file_size";
+    public static final String GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT = "s";
+    public static final String GLOBUS_FILE_TRANSFER_SOURCE_PATH_LONG = "globus_file_transfer_source_path";
+    public static final String GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT = "d";
+    public static final String GLOBUS_FILE_TRANSFER_DESTINATION_PATH_LONG = "globus_file_transfer_destination_path";
+    public static final String GLOBUS_FILE_TRANSFER_FILE_SIZE_SHORT = "l";
+    public static final String GLOBUS_FILE_TRANSFER_FILE_SIZE_LONG = "file_size";
     public static final String CRYPT4GH_OPTION = "crypt4gh";
     public static final String CRYPT4GH_PRIVATE_KEY_PATH_SHORT = "sk";
     public static final String CRYPT4GH_PRIVATE_KEY_PATH_LONG = "private_key";
@@ -49,15 +49,15 @@ public class CLIParser {
     private static OptionParser buildParser() {
         final OptionParser parser = new OptionParser();
         parser.accepts(OPTIONS_HELP, "Use this option to display help");
-        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT, GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG), "Globus file download path/uri (source)")
+        parser.acceptsAll(List.of(GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT, GLOBUS_FILE_TRANSFER_SOURCE_PATH_LONG), "Globus file download path/uri (source)")
                 .requiredUnless(OPTIONS_HELP)
                 .withRequiredArg()
                 .ofType(String.class);
-        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT, GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG), "Globus file download path (destination)")
+        parser.acceptsAll(List.of(GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT, GLOBUS_FILE_TRANSFER_DESTINATION_PATH_LONG), "Globus file download path (destination)")
                 .requiredUnless(OPTIONS_HELP)
                 .withRequiredArg()
                 .ofType(String.class);
-        parser.acceptsAll(List.of(GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT, GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG), "File size")
+        parser.acceptsAll(List.of(GLOBUS_FILE_TRANSFER_FILE_SIZE_SHORT, GLOBUS_FILE_TRANSFER_FILE_SIZE_LONG), "File size")
                 .requiredUnless(OPTIONS_HELP)
                 .withRequiredArg()
                 .ofType(Long.class);

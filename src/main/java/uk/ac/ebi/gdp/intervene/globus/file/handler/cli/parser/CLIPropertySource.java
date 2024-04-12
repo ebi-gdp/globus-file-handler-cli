@@ -21,12 +21,12 @@ import org.springframework.core.env.PropertySource;
 
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.CRYPT4GH_PRIVATE_KEY_PATH_LONG;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.CRYPT4GH_PRIVATE_KEY_PATH_SHORT;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_DESTINATION_PATH_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_FILE_SIZE_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_FILE_SIZE_SHORT;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_SOURCE_PATH_LONG;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT;
 
 public class CLIPropertySource extends PropertySource<CLIParameters> {
     public CLIPropertySource(final String name, final CLIParameters source) {
@@ -36,10 +36,13 @@ public class CLIPropertySource extends PropertySource<CLIParameters> {
     @Override
     public Object getProperty(final String name) {
         return switch (name) {
-            case GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_SHORT, GLOBUS_FILE_DOWNLOAD_SOURCE_PATH_LONG -> getSource().getFileDownloadSourceLocation();
-            case GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_SHORT, GLOBUS_FILE_DOWNLOAD_DESTINATION_PATH_LONG -> getSource().getFileDownloadDestinationLocation();
-            case GLOBUS_FILE_DOWNLOAD_FILE_SIZE_SHORT, GLOBUS_FILE_DOWNLOAD_FILE_SIZE_LONG -> getSource().getFileSize();
-            case CRYPT4GH_PRIVATE_KEY_PATH_SHORT, CRYPT4GH_PRIVATE_KEY_PATH_LONG -> getSource().getCrypt4ghPrivateKeyPath();
+            case GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT, GLOBUS_FILE_TRANSFER_SOURCE_PATH_LONG ->
+                    getSource().getFileDownloadSourceLocation();
+            case GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT, GLOBUS_FILE_TRANSFER_DESTINATION_PATH_LONG ->
+                    getSource().getFileDownloadDestinationLocation();
+            case GLOBUS_FILE_TRANSFER_FILE_SIZE_SHORT, GLOBUS_FILE_TRANSFER_FILE_SIZE_LONG -> getSource().getFileSize();
+            case CRYPT4GH_PRIVATE_KEY_PATH_SHORT, CRYPT4GH_PRIVATE_KEY_PATH_LONG ->
+                    getSource().getCrypt4ghPrivateKeyPath();
             default -> null;
         };
     }
