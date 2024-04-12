@@ -6,6 +6,7 @@ name: Maven Package
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,17 +17,35 @@ jobs:
       packages: write
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '21'
         distribution: 'temurin'
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
+    - name: Set up maven token
+      uses: s4u/maven-settings-action@v3.0.0
+      with:
+        servers: |
+          [{
+            "id": "serverId",
+            "configuration": {
+              "item1": "value1",
+              "httpHeaders": {
+                "property": {
+                  "name": "Deploy-Token",
+                  "value": "${{ secrets.MAVEN_TOKEN }}"
+                }
+              }
+            }
+          }]
+
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn clean package
 
     - name: Publish to GitHub Packages Apache Maven
       run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
