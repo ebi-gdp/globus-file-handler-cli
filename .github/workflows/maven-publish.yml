@@ -34,9 +34,8 @@ jobs:
       with:
         servers: |
           [{
-            "id": "serverId",
+            "id": "gitlab-maven",
             "configuration": {
-              "item1": "value1",
               "httpHeaders": {
                 "property": {
                   "name": "Deploy-Token",
