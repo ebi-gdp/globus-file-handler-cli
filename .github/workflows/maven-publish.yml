@@ -8,8 +8,7 @@ on:
     types: [published]
 
 jobs:
-  build:
-
+  build_maven:
     runs-on: ubuntu-latest
     permissions:
       contents: read
