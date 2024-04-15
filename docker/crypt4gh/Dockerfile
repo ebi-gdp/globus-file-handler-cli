@@ -1,6 +1,6 @@
 ARG VERSION=1.0.0
 
-FROM maven:eclipse-temurin AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 COPY . /tmp/ 
 
