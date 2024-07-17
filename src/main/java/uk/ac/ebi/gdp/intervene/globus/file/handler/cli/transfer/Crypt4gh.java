@@ -19,15 +19,75 @@ package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.StringJoiner;
 
-import static java.lang.String.join;
+import static java.util.Objects.requireNonNull;
 
-public record Crypt4gh(
-        Path crypt4ghBinAbsolutePath,
-        Path privateKeyAbsolutePath) {
-    public String crypt4ghDecryptBashCmd(final URI decryptedDownloadFile) {
-        return join(" ",
-                crypt4ghBinAbsolutePath.toString(), "decrypt",
-                "--sk", privateKeyAbsolutePath.toString(), ">", decryptedDownloadFile.getPath());
+/**
+ * Crypt4gh builder class to provision necessary utilities to execute crypt4gh
+ * commands e.g. encryption/decryption etc.
+ */
+public class Crypt4gh {
+    private final Path crypt4ghBinAbsolutePath;
+    private final Path privateKeyAbsolutePath;
+
+    private Crypt4gh(final Builder builder) {
+        this.crypt4ghBinAbsolutePath = builder.crypt4ghBinAbsolutePath;
+        this.privateKeyAbsolutePath = builder.privateKeyAbsolutePath;
+    }
+
+    /**
+     * Builder function to initialize Builder class with mandatory parameters.
+     *
+     * @param crypt4ghBinAbsolutePath absolute bin path to crypt4gh executable binary.
+     * @param privateKeyAbsolutePath absolute path to private key.
+     *
+     * @return Builder instance.
+     */
+    public static Builder builder(final Path crypt4ghBinAbsolutePath,
+                                  final Path privateKeyAbsolutePath) {
+        return new Builder(crypt4ghBinAbsolutePath, privateKeyAbsolutePath);
+    }
+
+    /**
+     * Builds crypt4gh decryption command.
+     *
+     * @param destinationFileURI location of decrypted file to download at.
+     *
+     * @return complete executable command.
+     */
+    public String crypt4ghDecryptBashCmd(final URI destinationFileURI) {
+        requireNonNull(destinationFileURI, "Decrypted download file URI cannot be null");
+        return new StringJoiner(" ")
+                .add(crypt4ghBinAbsolutePath.toString())
+                .add("decrypt")
+                .add("--sk")
+                .add(privateKeyAbsolutePath.toString())
+                .add(">")
+                .add(destinationFileURI.getPath())
+                .toString();
+    }
+
+    /**
+     * Builder class.
+     */
+    public static class Builder {
+        private final Path crypt4ghBinAbsolutePath;
+        private final Path privateKeyAbsolutePath;
+
+        private Builder(final Path crypt4ghBinAbsolutePath, final Path privateKeyAbsolutePath) {
+            requireNonNull(crypt4ghBinAbsolutePath, "Crypt4gh bin absolute path cannot be null");
+            requireNonNull(privateKeyAbsolutePath, "Private key absolute path cannot be null");
+            this.crypt4ghBinAbsolutePath = crypt4ghBinAbsolutePath;
+            this.privateKeyAbsolutePath = privateKeyAbsolutePath;
+        }
+
+        /**
+         * @return Crypt4gh instance.
+         */
+        public Crypt4gh build() {
+            return new Crypt4gh(this);
+        }
     }
 }
+

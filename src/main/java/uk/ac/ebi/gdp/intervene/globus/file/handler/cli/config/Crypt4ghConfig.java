@@ -57,8 +57,8 @@ public class Crypt4ghConfig {
     @Bean
     public Crypt4gh crypt4gh(@Value("${crypt4gh.binary-path}") final Path binPath,
                              @Value("${" + CRYPT4GH_PRIVATE_KEY_PATH_LONG + "}") final Path privateKeyPath) {
-        return new Crypt4gh(
-                binPath,
-                privateKeyPath);
+        return Crypt4gh
+                .builder(binPath, privateKeyPath)
+                .build();
     }
 }
