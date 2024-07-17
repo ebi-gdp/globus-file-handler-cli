@@ -1,0 +1,26 @@
+on:
+  workflow_run:
+    workflows: ['Docker build']
+    types:
+      - completed
+
+jobs:
+  build_singularity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out pipeline code
+        uses: actions/checkout@v3
+
+      - name: Set up Singularity
+        uses: eWaterCycle/setup-singularity@v7
+        with:
+          singularity-version: 3.8.3
+
+      - name: Build image
+        run: singularity build img.sif
+          "docker://ghcr.io/ebi-gdp/globus-file-handler-cli:${{github.event.release.tag_name }}"
+
+      - name: Push image
+        run: >
+          echo "${{ secrets.GITHUB_TOKEN }}" | singularity remote login -u "$GITHUB_ACTOR" --password-stdin oras://ghcr.io
+          singularity push img.sif "ghcr.io/ebi-gdp/globus-file-handler-cli:${{ github.event.release.tag_name }}-singularity"

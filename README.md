@@ -1,11 +1,31 @@
-# globus-file-handler-cli
+## globus-file-handler-cli
+
+This java package provides a CLI to download files from a Globus collection over HTTPS, with optional crypt4gh decryption on the fly.
 
 ### How to build?
+
 ```
-mvn clean package
+$ mvn clean package
 ```
+
+#### Building docker image
+
+You'll need to set up a a token in the maven settings file and mount it during build:
+
+```
+$ docker build --secret id=MAVEN_SETTINGS,src=$HOME/.m2/settings.xml  -t test -f docker/crypt4gh/Dockerfile .
+```
+
+### Pre-built packages
+
+Check out the [package registry](https://github.com/orgs/ebi-gdp/packages?repo_name=globus-file-handler-cli) to find pre-built packages and container images.
+
+The docker images are built in amd64 and arm64 architectures.
+
 ### How to run?
+
 Use appropriate jar version
+
 #### Original file download
 ```
 # Help option

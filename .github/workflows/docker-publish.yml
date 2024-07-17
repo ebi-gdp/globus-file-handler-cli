@@ -1,12 +1,11 @@
-# This workflow builds a multi-architecture docker image and pushes it to the github container registry
-name: Docker build and push
+name: Docker build
 
 on:
   release:
     types: [published]
 
 jobs:
-  build:
+  build_docker:
     runs-on: ubuntu-latest
 
     steps:
