@@ -75,7 +75,8 @@ public class Crypt4gh {
         private final Path crypt4ghBinAbsolutePath;
         private final Path privateKeyAbsolutePath;
 
-        private Builder(final Path crypt4ghBinAbsolutePath, final Path privateKeyAbsolutePath) {
+        private Builder(final Path crypt4ghBinAbsolutePath,
+                        final Path privateKeyAbsolutePath) {
             requireNonNull(crypt4ghBinAbsolutePath, "Crypt4gh bin absolute path cannot be null");
             requireNonNull(privateKeyAbsolutePath, "Private key absolute path cannot be null");
             this.crypt4ghBinAbsolutePath = crypt4ghBinAbsolutePath;
