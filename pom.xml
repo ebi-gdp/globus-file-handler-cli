@@ -13,7 +13,7 @@
 
     <groupId>uk.ac.ebi.gdp.intervene</groupId>
     <artifactId>globus-file-handler-cli</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Globus file download CLI application</name>
 
