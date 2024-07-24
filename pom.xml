@@ -24,6 +24,11 @@
         <maven.compiler.release>${java.version}</maven.compiler.release>
     </properties>
 
+    <scm>
+        <connection>scm:git:git@github.com:ebi-gdp/globus-file-handler-cli.git</connection>
+        <tag>HEAD</tag>
+    </scm>
+
     <repositories>
         <repository>
             <id>gitlab-maven</id>
