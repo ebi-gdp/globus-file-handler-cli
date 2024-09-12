@@ -17,6 +17,7 @@
  */
 package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +42,7 @@ public class GlobusFileHandlerCliConfig {
 
     @Profile("!" + CRYPT4GH)
     @Bean
-    public IGlobusFileTransfer defaultGlobusFileTransfer(final WebClient webClient,
+    public IGlobusFileTransfer defaultGlobusFileTransfer(@Qualifier("globusWebClient") final WebClient webClient,
                                                          final RetryTemplate retryTemplate,
                                                          final WebClientProperties webClientProperties,
                                                          @Value("${data.copy.buffer-size:8192}") final int bufferSize) {

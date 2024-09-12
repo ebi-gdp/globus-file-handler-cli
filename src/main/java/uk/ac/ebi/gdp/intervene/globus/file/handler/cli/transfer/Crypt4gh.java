@@ -17,17 +17,30 @@
  */
 package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.ac.ebi.gdp.intervene.cryptography.aes.AESCryptography;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.dto.PrivateKeyDTO;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.dto.SecretDetailsDTO;
+import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.service.KeyHandlerService;
+
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.StringJoiner;
 
+import static com.google.common.io.Files.write;
+import static java.nio.file.Files.notExists;
 import static java.util.Objects.requireNonNull;
+import static uk.ac.ebi.gdp.file.handler.core.exception.ClientException.clientException;
 
 /**
  * Crypt4gh builder class to provision necessary utilities to execute crypt4gh
  * commands e.g. encryption/decryption etc.
  */
 public class Crypt4gh {
+    private static final String SEC_KEY_EXT = ".sec";
+    private static final String SECRET_DETAILS_FILE_SUFFIX = "secret-config.json";
+
     private final Path crypt4ghBinAbsolutePath;
     private final Path privateKeyAbsolutePath;
 
@@ -41,12 +54,19 @@ public class Crypt4gh {
      *
      * @param crypt4ghBinAbsolutePath absolute bin path to crypt4gh executable binary.
      * @param privateKeyAbsolutePath absolute path to private key.
+     * @param keyHandlerService key handler service.
+     * @param password to decrypt encrypted private key.
      *
      * @return Builder instance.
      */
     public static Builder builder(final Path crypt4ghBinAbsolutePath,
-                                  final Path privateKeyAbsolutePath) {
-        return new Builder(crypt4ghBinAbsolutePath, privateKeyAbsolutePath);
+                                  final Path privateKeyAbsolutePath,
+                                  final KeyHandlerService keyHandlerService,
+                                  final char[] password) throws IOException {
+        return new Builder(crypt4ghBinAbsolutePath,
+                privateKeyAbsolutePath,
+                keyHandlerService,
+                password);
     }
 
     /**
@@ -74,13 +94,64 @@ public class Crypt4gh {
     public static class Builder {
         private final Path crypt4ghBinAbsolutePath;
         private final Path privateKeyAbsolutePath;
+        private final KeyHandlerService keyHandlerService;
+        private final char[] password;
 
         private Builder(final Path crypt4ghBinAbsolutePath,
-                        final Path privateKeyAbsolutePath) {
+                        final Path privateKeyAbsolutePath,
+                        final KeyHandlerService keyHandlerService,
+                        final char[] password) throws IOException {
             requireNonNull(crypt4ghBinAbsolutePath, "Crypt4gh bin absolute path cannot be null");
             requireNonNull(privateKeyAbsolutePath, "Private key absolute path cannot be null");
+
+            validateFile(privateKeyAbsolutePath);
+
             this.crypt4ghBinAbsolutePath = crypt4ghBinAbsolutePath;
-            this.privateKeyAbsolutePath = privateKeyAbsolutePath;
+            this.keyHandlerService = keyHandlerService;
+            this.password = password;
+            this.privateKeyAbsolutePath = getPrivateKey(privateKeyAbsolutePath);
+        }
+
+        private void validateFile(final Path privateKeyAbsolutePath) {
+            if (notExists(privateKeyAbsolutePath)) {
+                throw clientException(404, "Private key file details %s not found!".formatted(privateKeyAbsolutePath.toString()));
+            }
+        }
+
+        private Path getPrivateKey(final Path privateKeyAbsolutePath) throws IOException {
+            final String fileName = privateKeyAbsolutePath.getFileName().toString();
+            if (fileName.endsWith(SECRET_DETAILS_FILE_SUFFIX)) {
+                return retrievePrivateKeyFromKeyHandlerService(privateKeyAbsolutePath);
+            } else if (fileName.endsWith(SEC_KEY_EXT)) {
+                return privateKeyAbsolutePath;
+            }
+            throw clientException(404, "File name should either end with %s OR %s".formatted(SEC_KEY_EXT, SECRET_DETAILS_FILE_SUFFIX));
+        }
+
+        private Path retrievePrivateKeyFromKeyHandlerService(final Path privateKeySecretConfig) throws IOException {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            final SecretDetailsDTO secretDetailsDTO = objectMapper
+                    .readValue(privateKeySecretConfig.toFile(), SecretDetailsDTO.class);
+            final PrivateKeyDTO privateKeyDTO = getSecretDetails(secretDetailsDTO);
+            final AESCryptography aesCryptography = new AESCryptography.Builder().build();
+            final byte[] privateKey = aesCryptography.decrypt(privateKeyDTO.privateKey(), password);
+            return saveDecryptedPrivateKey(privateKey,
+                    secretDetailsDTO.secretId(),
+                    privateKeySecretConfig.getParent());
+        }
+
+        private PrivateKeyDTO getSecretDetails(final SecretDetailsDTO secretDetailsDTO) {
+            return keyHandlerService.downloadPrivateKey(secretDetailsDTO.secretId(),
+                    secretDetailsDTO.secretIdVersion());
+        }
+
+        private Path saveDecryptedPrivateKey(final byte[] privateKey,
+                                             final String secretId,
+                                             final Path privateKeySecretConfigParentPath) throws IOException {
+            final Path privateKeyPath = privateKeySecretConfigParentPath
+                    .resolve(secretId + SEC_KEY_EXT);
+            write(privateKey, privateKeyPath.toFile());
+            return privateKeyPath;
         }
 
         /**

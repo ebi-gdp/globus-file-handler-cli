@@ -80,10 +80,10 @@ public class GlobusOauth2ClientConfig {
         return new InMemoryReactiveOAuth2AuthorizedClientService(clientRegistrationRepository);
     }
 
-    @Bean
-    public WebClient egaWebClient(final ReactiveOAuth2AuthorizedClientManager authorizedClientManager,
-                                  final WebClientProperties webClientProperties,
-                                  @Value("${globus.guest-collection.domain}") final String baseURL) {
+    @Bean("globusWebClient")
+    public WebClient globusWebClient(final ReactiveOAuth2AuthorizedClientManager authorizedClientManager,
+                                     final WebClientProperties webClientProperties,
+                                     @Value("${globus.guest-collection.domain}") final String baseURL) {
         return webClient(
                 authorizedClientManager,
                 webClientProperties,
