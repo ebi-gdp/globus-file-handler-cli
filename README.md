@@ -53,4 +53,7 @@ java -jar globus-file-handler-cli-1.0.0.jar --spring.profiles.active=dev -s "gol
 
 # Example long option
 java -jar globus-file-handler-cli-1.0.0.jar --spring.profiles.active=dev --globus_file_transfer_source_path "golbus:///ashutosh@ebi.ac.uk/Sample_Set_Friday_02_Feb_14_11/hapnest.pvar.c4gh" --globus_file_transfer_destination_path "file:///Users/ashutosh/downloaded-files" --file_size 278705850 --crypt4gh --sk "/Users/ashutosh/downloaded-files/private.sec"
+
+# Example secret config option (e.g. stored on secret manager)
+java -jar globus-file-handler-cli-1.0.0.jar --spring.profiles.active=dev -s "globus:///ashutosh@ebi.ac.uk/Friday-10-05-09-46-Test/hapnest.pvar.c4gh" --globus_file_transfer_destination_path "file:///Users/ashutosh/Desktop/Intervene-Files/downloaded-files/hapnest.pvar" -l 215004174 --crypt4gh --sk "file:///Users/ashutosh/crypt4gh/globus-cli-test/096149F5-8566-437A-80A1-16BAFB65F74B-secret-config.json"
 ```
