@@ -12,7 +12,7 @@ FROM amazoncorretto:22
 
 ARG VERSION
 
-RUN yum install -y procps python3 python3-pip
+RUN yum install -y procps python3 python3-pip expect
 
 ENV PIPX_BIN_DIR=/opt/bin/
 
