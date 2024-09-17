@@ -1,6 +1,9 @@
 ## globus-file-handler-cli
 
-This [java package](https://github.com/orgs/ebi-gdp/packages?repo_name=globus-file-handler-cli) provides a CLI to download files from a Globus collection over HTTPS, with optional crypt4gh decryption on the fly.
+This [Java package](https://github.com/orgs/ebi-gdp/packages?repo_name=globus-file-handler-cli) provides a CLI to download files from a Globus collection over HTTPS, with optional:
+
+* crypt4gh decryption on the fly (with local secret keys)
+* integration with Google Secret Manager via the key handler service (so secret keys can be fetched)
 
 ## Set up runtime configuration
 
@@ -16,7 +19,6 @@ The CLI application can be configured by creating an [`application.properties`](
 | `globus.aai.client-id`           | `uuid`                                        | https://docs.globus.org/globus-connect-server/v5.4/use-client-credentials/                      |
 | `globus.aai.client-secret`       | `secret-token`                                | https://docs.globus.org/globus-connect-server/v5.4/use-client-credentials/#obtain_access_tokens |
 | `globus.aai.scopes`              | `https://author.globus.org/scopes/uuid/https` | https://docs.globus.org/guides/overviews/clients-scopes-and-consents/                                                                                              
-
 ### (Optional) crypt4gh configuration
 
 | Key                              | Value                                         | Description                                                                                     |
@@ -26,14 +28,29 @@ The CLI application can be configured by creating an [`application.properties`](
 
 ### (Optional) Key handler service configuration
 
-| Key                                       | Value                                         | Description                                         |                                   
-|-------------------------------------------|-----------------------------------------------|-----------------------------------------------------|
-| `intervene.key-handler.base-url`          | `https://example.comkey-handler               | Base path to a key handler instance                 |
-| `intervene.key-handler.keys.uri`          | `key/{secretId}/version/{secretIdVersion}`    |                                                     |
-| `intervene.key-handler.basic-auth`        | token                                         | Token to authenticate with the key handler service  |
-| intervene.key-handler.secret-key.password | password                                      | Password used to decrypt the fetched private key    |
+| Key                                         | Value                                         | Description                                         |                                   
+|---------------------------------------------|-----------------------------------------------|-----------------------------------------------------|
+| `intervene.key-handler.base-url`            | `https://example.comkey-handler`              | Base path to a key handler instance                 |
+| `intervene.key-handler.keys.uri`            | `key/{secretId}/version/{secretIdVersion}`    |                                                     |
+| `intervene.key-handler.basic-auth`          | `Basic <token>`                               | Token to authenticate with the key handler service  |
+| `intervene.key-handler.secret-key.password` | password                                      | Password used to decrypt the fetched private key    |
 
-## Example configuration
+The following JSON payload needs to be saved as `secret-config.json`:
+
+```
+{
+    "secretId": "uuid",
+    "secretIdVersion": "projects/<id>/secrets/<uuid>/versions/1"
+}
+```
+
+This describes the secret stored in Google Secret Manager by the key handler service.
+
+> [!TIP]
+> `intervene.key-handler.keys.uri` is a literal string (i.e. don't replace `{secretId}` with the contents of the JSON payload)
+> while `<id>` and `<uuid>` in the JSON payload need to be replaced with your values
+
+## Example configuration file
 
 Depending on your deployment the application properties file might look something like this:
 
@@ -69,8 +86,12 @@ $ java -jar globus-file-handler-cli-1.0.0.jar --spring.profiles.active=dev --glo
 
 ## How to download files and decrypt on the fly with crypt4gh (local keys)
 
-> [!TIP]
-> This process assumes your crypt4gh key pairs are present on your local machine and secret keys are unencrypted 
+This will automatically:
+
+* transfer a file in a Globus collection over HTTPS
+* decrypt on the fly using a local unencrypted secret key
+
+So a cleartext file is output. 
 
 ```
 # Execute download
@@ -83,10 +104,16 @@ $ java -jar globus-file-handler-cli-1.0.0.jar --spring.profiles.active=dev -s "g
 $ java -jar globus-file-handler-cli-1.0.0.jar --spring.profiles.active=dev --globus_file_transfer_source_path "golbus:///ashutosh@ebi.ac.uk/Sample_Set_Friday_02_Feb_14_11/hapnest.pvar.c4gh" --globus_file_transfer_destination_path "file:///Users/ashutosh/downloaded-files" --file_size 278705850 --crypt4gh --sk "/Users/ashutosh/downloaded-files/private.sec"
 ```
 
-## How to download files and decrypt on the fly with crypt4gh (secret manager)
+## How to download files and decrypt on the fly with crypt4gh (key handler service)
 
-> [!TIP]
-> This process assumes your encrypted crypt4gh secret key is in google secret manager
+This will automatically:
+
+* fetch an encrypted crypt4gh secret key via the key handler service
+* decrypt the secret key
+* transfer a file in a Globus collection over HTTPS
+* decrypt on the fly
+
+So a cleartext file is output. 
 
 ```
 # Example secret config option (e.g. stored on secret manager)
