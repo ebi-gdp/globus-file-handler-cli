@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.apache.commons.io.IOUtils.copy;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.exception.SystemException.systemException;
 
 public class GlobusCrypt4ghLocalFileTransfer extends DefaultGlobusFileTransfer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobusCrypt4ghLocalFileTransfer.class);
@@ -75,6 +76,7 @@ public class GlobusCrypt4ghLocalFileTransfer extends DefaultGlobusFileTransfer {
                         downloadFileSource.getPath(), destinationFile.getPath());
             } else {
                 LOGGER.error("Process finished with exit-code: {}", exitCode);
+                throw systemException("Unable to download file! Process builder terminated with error code %s".formatted(exitCode));
             }
         }
     }
