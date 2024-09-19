@@ -28,27 +28,26 @@ The CLI application can be configured by creating an [`application.properties`](
 
 ### (Optional) Key handler service configuration
 
-| Key                                         | Value                                         | Description                                         |                                   
-|---------------------------------------------|-----------------------------------------------|-----------------------------------------------------|
-| `intervene.key-handler.base-url`            | `https://example.comkey-handler`              | Base path to a key handler instance                 |
-| `intervene.key-handler.keys.uri`            | `key/{secretId}/version/{secretIdVersion}`    |                                                     |
-| `intervene.key-handler.basic-auth`          | `Basic <token>`                               | Token to authenticate with the key handler service  |
-| `intervene.key-handler.secret-key.password` | password                                      | Password used to decrypt the fetched private key    |
+| Key                                         | Value                                          | Description                                         |                                   
+|---------------------------------------------|------------------------------------------------|-----------------------------------------------------|
+| `intervene.key-handler.base-url`            | `https://example.com/key-handler`              | Base path to a key handler instance                 |
+| `intervene.key-handler.keys.uri`            | `/key/{secretId}/version/{secretIdVersion}`    |                                                     |
+| `intervene.key-handler.basic-auth`          | `Basic <token>`                                | Token to authenticate with the key handler service  |
+| `intervene.key-handler.secret-key.password` | password                                       | Password used to decrypt the fetched private key    |
+
+> [!TIP]
+> `intervene.key-handler.keys.uri` is a literal string (i.e. don't replace `{secretId}` with the contents of the JSON payload) that must start with `/`
 
 The following JSON payload needs to be saved as `secret-config.json`:
 
 ```
 {
-    "secretId": "uuid",
-    "secretIdVersion": "projects/<id>/secrets/<uuid>/versions/1"
+    "secretId": "<uuid>",
+    "secretIdVersion": "<version>"
 }
 ```
 
 This describes the secret stored in Google Secret Manager by the key handler service.
-
-> [!TIP]
-> `intervene.key-handler.keys.uri` is a literal string (i.e. don't replace `{secretId}` with the contents of the JSON payload)
-> while `<id>` and `<uuid>` in the JSON payload need to be replaced with your values
 
 ## Example configuration file
 
