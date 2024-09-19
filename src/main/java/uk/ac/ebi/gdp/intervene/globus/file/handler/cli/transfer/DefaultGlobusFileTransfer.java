@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
@@ -71,9 +72,18 @@ public class DefaultGlobusFileTransfer implements IGlobusFileTransfer {
             LOGGER.info("File download process completed for {}", downloadFileSource.getPath());
         } catch (Exception e) {
             LOGGER.error("Error while downloading file %s. %s".formatted(downloadFileSource.getPath(), e.getMessage()), e);
+            deleteOutputFile(downloadFileDestination);
             return APPLICATION_FAILED;
         }
         return SUCCESS;
+    }
+
+    private void deleteOutputFile(final URI downloadFileDestination) {
+        try {
+            Files.deleteIfExists(Path.of(downloadFileDestination));
+        } catch (IOException e) {
+            LOGGER.error("Unable to delete output file {}", downloadFileDestination.getPath());
+        }
     }
 
     protected void doDownloadFile(final URI downloadFileSourceURI,
