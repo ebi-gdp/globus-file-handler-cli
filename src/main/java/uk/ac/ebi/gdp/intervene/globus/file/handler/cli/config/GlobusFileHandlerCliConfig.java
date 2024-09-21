@@ -32,7 +32,7 @@ import uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer.IGlobusFileTrans
 
 import java.net.URI;
 
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.DEFAULT_PLAIN;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_DESTINATION_PATH_SHORT;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_FILE_SIZE_SHORT;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.GLOBUS_FILE_TRANSFER_SOURCE_PATH_SHORT;
@@ -40,7 +40,7 @@ import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.G
 @Configuration
 public class GlobusFileHandlerCliConfig {
 
-    @Profile("!" + CRYPT4GH)
+    @Profile(DEFAULT_PLAIN)
     @Bean
     public IGlobusFileTransfer defaultGlobusFileTransfer(@Qualifier("globusWebClient") final WebClient webClient,
                                                          final RetryTemplate retryTemplate,
