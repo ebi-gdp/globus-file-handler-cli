@@ -40,6 +40,7 @@ In order to run application successfully you need to configure application prope
 | `file.download.retry.attempts.delay` | `1000` | Delay between retry attempts |
 | `file.download.retry.attempts.maxDelay` | `30000` | Retry attempts max delay in milliseconds |
 | `file.download.retry.attempts.multiplier` | `2` | Retry attempts multipler |
+
 For more details explore **Spring Retry Template** documentation.
 
 #### Globus config
@@ -50,6 +51,7 @@ For more details explore **Spring Retry Template** documentation.
 | `globus.aai.client-id` | `7v3vg66f-4g78-6586-a10a-e4567a4e3a34` | Client Id - UUID string, you will get this once you register your client on globus. Required for Authentication. Replace with actual value.|
 | `globus.aai.client-secret` | `Vh8cVcVnpp5Z9K67LLXc8Xuc6TOPk3T4CqUNMhBnYOU=`| Client Secret - A string of charaters. You will get this once you register your client on globus. Required for Authentication. Replace with actual value.|
 | `globus.aai.scopes` | `https://auth.globus.org/scopes/{f1t4567c-34f4-4e3f-1111-433565d05v6r}/https` | UUID of Guest Collection. Replace `{f1t4567c-34f4-4e3f-1111-433565d05v6r}` with actual value.|
+
 [Globus client registration & its usage](https://docs.globus.org/globus-connect-server/v5.4/use-client-credentials/#register-application).
 
 #### Crypt4gh config
