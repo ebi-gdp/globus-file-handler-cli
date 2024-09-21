@@ -38,8 +38,8 @@ import static uk.ac.ebi.gdp.file.handler.core.exception.ClientException.clientEx
  * commands e.g. encryption/decryption etc.
  */
 public class Crypt4gh {
-    private static final String SEC_KEY_EXT = ".sec";
-    private static final String SECRET_DETAILS_FILE_SUFFIX = "secret-config.json";
+    public static final String SEC_KEY_EXT = ".sec";
+    public static final String SECRET_DETAILS_FILE_SUFFIX = "secret-config.json";
 
     private final Path crypt4ghBinAbsolutePath;
     private final Path privateKeyAbsolutePath;
@@ -47,6 +47,20 @@ public class Crypt4gh {
     private Crypt4gh(final Builder builder) {
         this.crypt4ghBinAbsolutePath = builder.crypt4ghBinAbsolutePath;
         this.privateKeyAbsolutePath = builder.privateKeyAbsolutePath;
+    }
+
+    /**
+     * Builder function to initialize Builder class with mandatory parameters.
+     *
+     * @param crypt4ghBinAbsolutePath absolute bin path to crypt4gh executable binary.
+     * @param privateKeyAbsolutePath absolute path to private key.
+     *
+     * @return Builder instance.
+     */
+    public static Builder builder(final Path crypt4ghBinAbsolutePath,
+                                  final Path privateKeyAbsolutePath) {
+        return new Builder(crypt4ghBinAbsolutePath,
+                privateKeyAbsolutePath);
     }
 
     /**
@@ -94,38 +108,43 @@ public class Crypt4gh {
     public static class Builder {
         private final Path crypt4ghBinAbsolutePath;
         private final Path privateKeyAbsolutePath;
-        private final KeyHandlerService keyHandlerService;
-        private final char[] password;
+        private KeyHandlerService keyHandlerService;
+        private char[] password;
+
+        private Builder(final Path crypt4ghBinAbsolutePath,
+                        final Path privateKeyAbsolutePath) {
+            validateFiles(crypt4ghBinAbsolutePath, privateKeyAbsolutePath);
+            this.crypt4ghBinAbsolutePath = crypt4ghBinAbsolutePath;
+            this.privateKeyAbsolutePath = privateKeyAbsolutePath;
+        }
 
         private Builder(final Path crypt4ghBinAbsolutePath,
                         final Path privateKeyAbsolutePath,
                         final KeyHandlerService keyHandlerService,
                         final char[] password) throws IOException {
-            requireNonNull(crypt4ghBinAbsolutePath, "Crypt4gh bin absolute path cannot be null");
-            requireNonNull(privateKeyAbsolutePath, "Private key absolute path cannot be null");
-
-            validateFile(privateKeyAbsolutePath);
-
+            validateFiles(crypt4ghBinAbsolutePath, privateKeyAbsolutePath);
             this.crypt4ghBinAbsolutePath = crypt4ghBinAbsolutePath;
             this.keyHandlerService = keyHandlerService;
             this.password = password;
-            this.privateKeyAbsolutePath = getPrivateKey(privateKeyAbsolutePath);
+            this.privateKeyAbsolutePath = retrievePrivateKeyFromKeyHandlerService(privateKeyAbsolutePath);
         }
 
-        private void validateFile(final Path privateKeyAbsolutePath) {
+        private void validateFiles(final Path crypt4ghBinAbsolutePath,
+                                   final Path privateKeyAbsolutePath) {
+            requireNonNull(crypt4ghBinAbsolutePath, "Crypt4gh bin absolute path cannot be null");
+            validatePrivateKey(privateKeyAbsolutePath);
+
             if (notExists(privateKeyAbsolutePath)) {
                 throw clientException(404, "Private key file details %s not found!".formatted(privateKeyAbsolutePath.toString()));
             }
         }
 
-        private Path getPrivateKey(final Path privateKeyAbsolutePath) throws IOException {
+        private void validatePrivateKey(final Path privateKeyAbsolutePath) {
+            requireNonNull(privateKeyAbsolutePath, "Private key absolute path cannot be null");
             final String fileName = privateKeyAbsolutePath.getFileName().toString();
-            if (fileName.endsWith(SECRET_DETAILS_FILE_SUFFIX)) {
-                return retrievePrivateKeyFromKeyHandlerService(privateKeyAbsolutePath);
-            } else if (fileName.endsWith(SEC_KEY_EXT)) {
-                return privateKeyAbsolutePath;
+            if (!fileName.endsWith(SECRET_DETAILS_FILE_SUFFIX) && !fileName.endsWith(SEC_KEY_EXT)) {
+                throw clientException(404, "File name should either end with %s OR %s".formatted(SEC_KEY_EXT, SECRET_DETAILS_FILE_SUFFIX));
             }
-            throw clientException(404, "File name should either end with %s OR %s".formatted(SEC_KEY_EXT, SECRET_DETAILS_FILE_SUFFIX));
         }
 
         private Path retrievePrivateKeyFromKeyHandlerService(final Path privateKeySecretConfig) throws IOException {

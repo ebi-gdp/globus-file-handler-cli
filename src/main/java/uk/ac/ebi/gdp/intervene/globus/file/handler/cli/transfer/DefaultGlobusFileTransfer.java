@@ -32,11 +32,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 
+import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Paths.get;
 import static org.apache.commons.io.IOUtils.copy;
 import static uk.ac.ebi.gdp.file.handler.core.utils.Checksum.getMD5MessageDigest;
@@ -80,7 +80,7 @@ public class DefaultGlobusFileTransfer implements IGlobusFileTransfer {
 
     private void deleteOutputFile(final URI downloadFileDestination) {
         try {
-            Files.deleteIfExists(Path.of(downloadFileDestination));
+            deleteIfExists(Path.of(downloadFileDestination));
         } catch (IOException e) {
             LOGGER.error("Unable to delete output file {}", downloadFileDestination.getPath());
         }

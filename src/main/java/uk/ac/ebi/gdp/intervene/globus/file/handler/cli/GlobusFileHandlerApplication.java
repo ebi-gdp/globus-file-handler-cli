@@ -32,11 +32,15 @@ import java.util.Optional;
 import static java.lang.System.exit;
 import static java.util.Arrays.asList;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ApplicationStatus.INPUT_PROCESSING_ERROR;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH_SECRET_KEY_LOCAL;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH_SECRET_KEY_SECRET_MANAGER;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.DEFAULT_PLAIN;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.parse;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.transfer.Crypt4gh.SECRET_DETAILS_FILE_SUFFIX;
 
 @SpringBootApplication
 public class GlobusFileHandlerApplication {
+
     public static void main(final String... args) throws IOException {
         final Optional<CLIParameters> cliParameters = parse(args);
 
@@ -58,13 +62,25 @@ public class GlobusFileHandlerApplication {
 
     private static void setActiveProfile(final CLIParameters parameters,
                                          final ConfigurableEnvironment configurableEnvironment) {
+        final String[] activeProfilesArray = configurableEnvironment.getActiveProfiles();
+        final List<String> activeProfilesList = new ArrayList<>(activeProfilesArray.length);
+        activeProfilesList.addAll(asList(activeProfilesArray));
+
         if (parameters.isCrypt4ghEnabled()) {
-            final String[] activeProfilesArray = configurableEnvironment.getActiveProfiles();
-            final List<String> activeProfilesList = new ArrayList<>(activeProfilesArray.length);
-            activeProfilesList.addAll(asList(activeProfilesArray));
-            activeProfilesList.add(CRYPT4GH);
-            configurableEnvironment
-                    .setActiveProfiles(activeProfilesList.toArray(String[]::new));
+            activeProfilesList.add(fetchCrypt4ghProfile(parameters));
+        } else {
+            activeProfilesList.add(DEFAULT_PLAIN);
+        }
+        configurableEnvironment
+                .setActiveProfiles(activeProfilesList.toArray(String[]::new));
+    }
+
+    private static String fetchCrypt4ghProfile(final CLIParameters parameters) {
+        if (parameters.getCrypt4ghPrivateKeyPath()
+                .endsWith(SECRET_DETAILS_FILE_SUFFIX)) {
+            return CRYPT4GH_SECRET_KEY_SECRET_MANAGER;
+        } else {
+            return CRYPT4GH_SECRET_KEY_LOCAL;
         }
     }
 }

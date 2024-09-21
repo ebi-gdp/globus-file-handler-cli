@@ -35,55 +35,76 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH_SECRET_KEY_LOCAL;
+import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant.ProfileType.CRYPT4GH_SECRET_KEY_SECRET_MANAGER;
 import static uk.ac.ebi.gdp.intervene.globus.file.handler.cli.parser.CLIParser.CRYPT4GH_PRIVATE_KEY_PATH_LONG;
 
-@Profile(CRYPT4GH)
 @Configuration
 public class Crypt4ghConfig {
 
-    @Bean
-    public IGlobusFileTransfer crypt4ghGlobusFileTransfer(@Qualifier("globusWebClient") final WebClient webClient,
-                                                          final RetryTemplate retryTemplate,
-                                                          final WebClientProperties webClientProperties,
-                                                          final Crypt4gh crypt4gh,
-                                                          @Value("#{'${crypt4gh.shell-path}'.split(' ')}") final List<String> shellInterpreterCmds,
-                                                          @Value("${data.copy.buffer-size:8192}") final int bufferSize) {
-        return new GlobusCrypt4ghLocalFileTransfer(
-                webClient,
-                retryTemplate,
-                webClientProperties.getPipeSize(),
-                crypt4gh,
-                shellInterpreterCmds,
-                bufferSize);
+    @Profile(CRYPT4GH_SECRET_KEY_LOCAL)
+    @Configuration
+    public static class Crypt4ghLocalSecretKeyConfig {
+        @Bean
+        public Crypt4gh crypt4gh(@Value("${crypt4gh.binary-path}") final Path binPath,
+                                 @Value("${" + CRYPT4GH_PRIVATE_KEY_PATH_LONG + "}") final Path privateKeyPath) {
+            return Crypt4gh
+                    .builder(binPath,
+                            privateKeyPath)
+                    .build();
+        }
     }
 
-    @Bean
-    public Crypt4gh crypt4gh(@Value("${crypt4gh.binary-path}") final Path binPath,
-                             @Value("${" + CRYPT4GH_PRIVATE_KEY_PATH_LONG + "}") final Path privateKeyPath,
-                             final KeyHandlerService keyHandlerService,
-                             @Value("${intervene.key-handler.secret-key.password}") final String password) throws IOException {
-        return Crypt4gh
-                .builder(binPath,
-                        privateKeyPath,
-                        keyHandlerService,
-                        password.toCharArray())
-                .build();
+    @Profile(CRYPT4GH_SECRET_KEY_SECRET_MANAGER)
+    @Configuration
+    public static class Crypt4ghConfigSecretManager {
+        @Bean
+        public Crypt4gh crypt4gh(@Value("${crypt4gh.binary-path}") final Path binPath,
+                                 @Value("${" + CRYPT4GH_PRIVATE_KEY_PATH_LONG + "}") final Path privateKeyPath,
+                                 final KeyHandlerService keyHandlerService,
+                                 @Value("${intervene.key-handler.secret-key.password}") final String password) throws IOException {
+            return Crypt4gh
+                    .builder(binPath,
+                            privateKeyPath,
+                            keyHandlerService,
+                            password.toCharArray())
+                    .build();
+        }
+
+        @Bean
+        public KeyHandlerService keyHandlerService(@Qualifier("keyHandlerServiceWebClient") final WebClient webClient,
+                                                   @Value("${intervene.key-handler.keys.uri}") final String keyHandlerServiceURI) {
+            return new KeyHandlerService(webClient, keyHandlerServiceURI);
+        }
+
+        @Bean("keyHandlerServiceWebClient")
+        public WebClient webClient(@Value("${intervene.key-handler.base-url}") final String keyHandlerServiceBaseURL,
+                                   @Value("${intervene.key-handler.basic-auth}") final String keyHandlerServiceBasicAuth) {
+            return WebClient
+                    .builder()
+                    .baseUrl(keyHandlerServiceBaseURL)
+                    .defaultHeader(AUTHORIZATION, keyHandlerServiceBasicAuth)
+                    .build();
+        }
     }
 
-    @Bean
-    public KeyHandlerService keyHandlerService(@Qualifier("keyHandlerServiceWebClient") final WebClient webClient,
-                                               @Value("${intervene.key-handler.keys.uri}") final String keyHandlerServiceURI) {
-        return new KeyHandlerService(webClient, keyHandlerServiceURI);
-    }
-
-    @Bean("keyHandlerServiceWebClient")
-    public WebClient webClient(@Value("${intervene.key-handler.base-url}") final String keyHandlerServiceBaseURL,
-                               @Value("${intervene.key-handler.basic-auth}") final String keyHandlerServiceBasicAuth) {
-        return WebClient
-                .builder()
-                .baseUrl(keyHandlerServiceBaseURL)
-                .defaultHeader(AUTHORIZATION, keyHandlerServiceBasicAuth)
-                .build();
+    @Profile({CRYPT4GH_SECRET_KEY_LOCAL, CRYPT4GH_SECRET_KEY_SECRET_MANAGER})
+    @Configuration
+    public static class Crypt4ghGlobusConfig {
+        @Bean
+        public IGlobusFileTransfer crypt4ghGlobusFileTransfer(@Qualifier("globusWebClient") final WebClient webClient,
+                                                              final RetryTemplate retryTemplate,
+                                                              final WebClientProperties webClientProperties,
+                                                              final Crypt4gh crypt4gh,
+                                                              @Value("#{'${crypt4gh.shell-path}'.split(' ')}") final List<String> shellInterpreterCmds,
+                                                              @Value("${data.copy.buffer-size:8192}") final int bufferSize) {
+            return new GlobusCrypt4ghLocalFileTransfer(
+                    webClient,
+                    retryTemplate,
+                    webClientProperties.getPipeSize(),
+                    crypt4gh,
+                    shellInterpreterCmds,
+                    bufferSize);
+        }
     }
 }

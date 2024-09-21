@@ -18,5 +18,7 @@
 package uk.ac.ebi.gdp.intervene.globus.file.handler.cli.constant;
 
 public interface ProfileType {
-    String CRYPT4GH = "crypt4gh";
+    String DEFAULT_PLAIN = "default-plain";
+    String CRYPT4GH_SECRET_KEY_LOCAL = "crypt4gh-secret-key-local";
+    String CRYPT4GH_SECRET_KEY_SECRET_MANAGER = "crypt4gh-secret-key-secret-manager";
 }
