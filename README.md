@@ -145,6 +145,10 @@ $ java -jar globus-file-handler-cli-1.0.0.jar --spring.profiles.active=crypt4gh-
 ```
 
 ## Build instructions (build your own jar/image)
+> [!TIP]
+> In order to build the jar, you would need 2 dependencies, you can build them locally in case don't have access to package registry. Repositories can be found at [File Handler Core](https://github.com/ebi-gdp/file-handler-core.git) &
+> [Cryptography](https://github.com/ebi-gdp/cryptography.git).
+
 Build jar with maven: [Make sure you have installed JDK 21+ & Maven 3.9+]
 ```
 $ mvn clean package
@@ -155,4 +159,4 @@ $ docker build --secret id=MAVEN_SETTINGS,src=$HOME/.m2/settings.xml --build-arg
 ```
 
 > [!TIP]
-> You'll need to set up a a token in the maven settings file (`settings.xml`) and mount it during build
+> You'll need to set up a token in the maven settings file (`settings.xml`) and mount it during build
