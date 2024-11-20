@@ -78,6 +78,8 @@ public class GlobusCrypt4ghLocalFileTransfer extends DefaultGlobusFileTransfer {
                 LOGGER.error("Process finished with exit-code: {}", exitCode);
                 throw systemException("Unable to download file! Process builder terminated with error code %s".formatted(exitCode));
             }
+        } finally {
+            LOGGER.info("Delete secret key if present: {}", crypt4gh.deleteSecKey());
         }
     }
 

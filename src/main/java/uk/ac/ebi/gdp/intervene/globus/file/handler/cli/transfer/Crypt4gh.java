@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.StringJoiner;
 
 import static com.google.common.io.Files.write;
+import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.notExists;
 import static java.util.Objects.requireNonNull;
 import static uk.ac.ebi.gdp.file.handler.core.exception.ClientException.clientException;
@@ -103,6 +104,14 @@ public class Crypt4gh {
                 .add("rm")
                 .add(privateKeyAbsolutePath.toString())
                 .toString();
+    }
+
+    /**
+     * @return true if file is present & deleted.
+     * @throws IOException in case error occurs.
+     */
+    public boolean deleteSecKey() throws IOException {
+        return deleteIfExists(privateKeyAbsolutePath);
     }
 
     /**
