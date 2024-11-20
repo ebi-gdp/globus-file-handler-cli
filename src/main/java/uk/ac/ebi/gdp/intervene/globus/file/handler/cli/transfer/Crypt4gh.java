@@ -99,6 +99,9 @@ public class Crypt4gh {
                 .add(privateKeyAbsolutePath.toString())
                 .add(">")
                 .add(destinationFileURI.getPath())
+                .add("&&")
+                .add("rm")
+                .add(privateKeyAbsolutePath.toString())
                 .toString();
     }
 
